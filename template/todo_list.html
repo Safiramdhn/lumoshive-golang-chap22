@@ -1,0 +1,15 @@
+{{ define "content" }}
+<h2>To-Do List</h2>
+<div>
+    {{ range . }}
+        <div class="form-group">
+            <span>{{ .Name }}</span>
+            {{if .States eq "not_started"}}
+            <a href="/update-todo?id=.ID&todo_status='done'" class="status {{ .Status }}">{{ .Status }}</a>
+            {{else if .States eq "done"}}
+            <a href="/update-todo?id=.ID&todo_status='not_started'" class="status {{ .Status }}">{{ .Status }}</a>
+            {{end}}
+        </div>
+    {{ end }}
+</div>
+{{ end }}
