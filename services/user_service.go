@@ -4,6 +4,8 @@ import (
 	"errors"
 	"golang-beginner-22/models"
 	"golang-beginner-22/repositories"
+
+	"github.com/google/uuid"
 )
 
 type UserService struct {
@@ -35,9 +37,26 @@ func (s *UserService) CreateUser(user *models.User) (*models.User, error) {
 		return nil, errors.New("name is required")
 	}
 
+	user.Token = uuid.NewString()
 	newUser, err := s.UserRepo.Create(*user)
 	if err != nil {
 		return nil, err
 	}
 	return newUser, nil
+}
+
+func (s *UserService) GetAllUsers() ([]models.User, error) {
+	users, err := s.UserRepo.GetAll()
+	if err != nil {
+		return nil, err
+	}
+	return users, nil
+}
+
+func (s *UserService) GetUserByID(id int) (*models.User, error) {
+	user, err := s.UserRepo.GetById(id)
+	if err != nil {
+		return nil, err
+	}
+	return user, nil
 }

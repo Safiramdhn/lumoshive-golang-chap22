@@ -1,13 +1,26 @@
 {{ define "content" }}
+<!-- Form to add a new todo directly on the todo list page -->
+<div>
+    <h3>Add New Todo</h3>
+    <form action="/create-todo" method="post">
+        <div class="form-group">
+            <label for="name">Task Name:</label>
+            <input type="text" id="name" name="name" required>
+        </div>
+        <button type="submit">Add Todo</button>
+    </form>
+</div>
+
+<!-- List of todos -->
 <h2>To-Do List</h2>
 <div>
     {{ range . }}
         <div class="form-group">
             <span>{{ .Name }}</span>
             {{if .States eq "not_started"}}
-            <a href="/update-todo?id=.ID&todo_status='done'" class="status {{ .Status }}">{{ .Status }}</a>
+            <a href="/update-todo?id={{ .ID }}&todo_status='done'" class="status {{ .Status }}">{{ .Status }}</a>
             {{else if .States eq "done"}}
-            <a href="/update-todo?id=.ID&todo_status='not_started'" class="status {{ .Status }}">{{ .Status }}</a>
+            <a href="/update-todo?id={{ .ID }}&todo_status='not_started'" class="status {{ .Status }}">{{ .Status }}</a>
             {{end}}
         </div>
     {{ end }}

@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"strconv"
 
 	"golang-beginner-22/database"
 	"golang-beginner-22/models"
@@ -70,6 +71,45 @@ func CreateUserHandler(w http.ResponseWriter, r *http.Request) {
 		fmt.Printf("%d : error creating user: %v\n", http.StatusInternalServerError, err.Error())
 		return
 	}
-	w.Header().Set("token", newUser.Token)
+	w.Header().Add("token", newUser.Token)
 	fmt.Printf("%d : User create successfully\n", http.StatusOK)
+	http.Redirect(w, r, "/todo-list", http.StatusOK)
+}
+
+func GetAllUsersHandler(w http.ResponseWriter, r *http.Request) {
+	db, err := database.InitDB()
+	if err != nil {
+		fmt.Printf("%d : Database connection error: %v\n", http.StatusInternalServerError, err.Error())
+		return
+	}
+	defer db.Close()
+
+	userRepo := repositories.NewUserRepositoryDB(db)
+	userService := services.NewUserService(*userRepo)
+	users, err := userService.GetAllUsers()
+	if err != nil {
+		fmt.Printf("%d : error fetching users: %v\n", http.StatusInternalServerError, err.Error())
+		return
+	}
+	RenderTemplate(w, "list_data_user.html", users)
+}
+
+func GetUserByIDHandler(w http.ResponseWriter, r *http.Request) {
+	id_int := r.URL.Query().Get("id")
+	id, _ := strconv.Atoi(id_int)
+
+	db, err := database.InitDB()
+	if err != nil {
+		fmt.Printf("%d : Database connection error: %v\n", http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	userRepo := repositories.NewUserRepositoryDB(db)
+	userService := services.NewUserService(*userRepo)
+	user, err := userService.GetUserByID(id)
+	if err != nil {
+		fmt.Printf("%d : error fetching user: %v\n", http.StatusInternalServerError, err.Error())
+		return
+	}
+	RenderTemplate(w, "user_details.html", user)
 }

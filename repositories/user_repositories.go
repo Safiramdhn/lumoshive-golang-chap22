@@ -33,8 +33,8 @@ func (r *UserRepositoryDB) Create(userInput models.User) (*models.User, error) {
 	}()
 
 	// SQL query to create a new user
-	sqlStatement := `INSERT INTO users (name, email, password) VALUES ($1, $2, $3) RETURNING id, email, name`
-	err = tx.QueryRow(sqlStatement, userInput.Name, userInput.Email, userInput.Password).Scan(&user.ID, &user.Email, &user.Name)
+	sqlStatement := `INSERT INTO users (name, email, password, token) VALUES ($1, $2, $3) RETURNING id, email, name, token`
+	err = tx.QueryRow(sqlStatement, userInput.Name, userInput.Email, userInput.Password, userInput.Token).Scan(&user.ID, &user.Email, &user.Name, &user.Token)
 	if err != nil {
 		return nil, err
 	}
@@ -63,5 +63,39 @@ func (r *UserRepositoryDB) Login(email, password string) (*models.User, error) {
 	if err != nil {
 		return nil, err
 	}
+	return &user, nil
+}
+
+func (r *UserRepositoryDB) GetAll() ([]models.User, error) {
+	rows, err := r.db.Query("SELECT id, email, name, status FROM users")
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var users []models.User
+	for rows.Next() {
+		var user models.User
+		err := rows.Scan(&user.ID, &user.Email, &user.Name, &user.Status)
+		if err != nil {
+			return nil, err
+		}
+		users = append(users, user)
+	}
+
+	return users, nil
+}
+
+func (r *UserRepositoryDB) GetById(id int) (*models.User, error) {
+	var user models.User
+
+	sqlStatement := `SELECT id, email, name, password, token FROM users WHERE id = $1`
+	err := r.db.QueryRow(sqlStatement, id).Scan(&user.ID, &user.Email, &user.Name, &user.Password, &user.Token)
+	if err == sql.ErrNoRows {
+		return nil, nil
+	} else if err != nil {
+		return nil, err
+	}
+
 	return &user, nil
 }
