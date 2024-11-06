@@ -15,7 +15,7 @@ func NewUserRepositoryDB(db *sql.DB) *UserRepositoryDB {
 	return &UserRepositoryDB{db: db}
 }
 
-func (r *UserRepositoryDB) Create(userInput models.User) (*models.User, error) {
+func (r *UserRepositoryDB) Create(name, email, password, token string) (*models.User, error) {
 	var user models.User
 
 	tx, err := r.db.Begin()
@@ -33,8 +33,8 @@ func (r *UserRepositoryDB) Create(userInput models.User) (*models.User, error) {
 	}()
 
 	// SQL query to create a new user
-	sqlStatement := `INSERT INTO users (name, email, password, token) VALUES ($1, $2, $3) RETURNING id, email, name, token`
-	err = tx.QueryRow(sqlStatement, userInput.Name, userInput.Email, userInput.Password, userInput.Token).Scan(&user.ID, &user.Email, &user.Name, &user.Token)
+	sqlStatement := `INSERT INTO users (name, email, password, token) VALUES ($1, $2, $3, $4) RETURNING id, email, name, token`
+	err = tx.QueryRow(sqlStatement, name, email, password, token).Scan(&user.ID, &user.Email, &user.Name, &user.Token)
 	if err != nil {
 		return nil, err
 	}

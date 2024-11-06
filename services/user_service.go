@@ -2,6 +2,7 @@ package services
 
 import (
 	"errors"
+	"fmt"
 	"golang-beginner-22/models"
 	"golang-beginner-22/repositories"
 
@@ -28,17 +29,18 @@ func (s *UserService) LoginService(email, password string) (*models.User, error)
 	return user, nil
 }
 
-func (s *UserService) CreateUser(user *models.User) (*models.User, error) {
-	if user.Email == "" || user.Password == "" {
+func (s *UserService) CreateUser(name, email, password string) (*models.User, error) {
+	fmt.Printf("email: %s, password: %s\n", email, password)
+	if email == "" || password == "" {
 		return nil, errors.New("email or password is required")
 	}
 
-	if user.Name == "" {
+	if name == "" {
 		return nil, errors.New("name is required")
 	}
 
-	user.Token = uuid.NewString()
-	newUser, err := s.UserRepo.Create(*user)
+	token := uuid.NewString()
+	newUser, err := s.UserRepo.Create(name, email, password, token)
 	if err != nil {
 		return nil, err
 	}

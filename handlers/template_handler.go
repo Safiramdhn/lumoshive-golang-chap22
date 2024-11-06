@@ -9,14 +9,14 @@ import (
 func RenderTemplate(w http.ResponseWriter, tmpl string, data interface{}) {
 	// Parse base template with the specified page content
 	parsedTemplate, err := template.ParseFiles(
-		"templates/base.html",
+		"templates/index.html",
 		filepath.Join("templates", tmpl),
 	)
 
 	// parse data
 
 	if err != nil {
-		http.Error(w, "Error loading template", http.StatusInternalServerError)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 	parsedTemplate.Execute(w, data)

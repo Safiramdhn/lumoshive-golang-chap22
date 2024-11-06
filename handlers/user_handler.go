@@ -1,13 +1,12 @@
 package handlers
 
 import (
-	"encoding/json"
 	"fmt"
 	"net/http"
 	"strconv"
 
 	"golang-beginner-22/database"
-	"golang-beginner-22/models"
+	// "golang-beginner-22/models"
 	"golang-beginner-22/repositories"
 	"golang-beginner-22/services"
 )
@@ -45,35 +44,51 @@ import (
 // }
 
 func CreateUserHandler(w http.ResponseWriter, r *http.Request) {
-	// Check if the request method is POST
+	// Ensure the request method is POST
 	if r.Method != http.MethodPost {
-		fmt.Printf("%d : Invalid request method\n", http.StatusMethodNotAllowed)
+		http.Error(w, "Invalid request method", http.StatusMethodNotAllowed)
 		return
 	}
 
-	var userInput models.User
-	if err := json.NewDecoder(r.Body).Decode(&userInput); err != nil {
-		fmt.Printf("%d : Invalid request payload\n", http.StatusBadRequest)
+	// Parse the form data
+	if err := r.ParseForm(); err != nil {
+		http.Error(w, "Unable to parse form", http.StatusBadRequest)
 		return
 	}
 
+	// Populate user input data
+	// userInput := models.User{
+	name := r.FormValue("name")
+	email := r.FormValue("email")
+	password := r.FormValue("password")
+	// }
+	// fmt.Printf("input: %v\n", userInput)
+
+	// Initialize database connection
 	db, err := database.InitDB()
 	if err != nil {
-		fmt.Printf("%d : Database connection error: %v\n", http.StatusInternalServerError, err.Error())
+		http.Error(w, "Database connection error", http.StatusInternalServerError)
 		return
 	}
 	defer db.Close()
 
+	// Create user repository and service
 	userRepo := repositories.NewUserRepositoryDB(db)
 	userService := services.NewUserService(*userRepo)
-	newUser, err := userService.CreateUser(&userInput)
+
+	// Attempt to create a new user
+	newUser, err := userService.CreateUser(name, email, password)
 	if err != nil {
-		fmt.Printf("%d : error creating user: %v\n", http.StatusInternalServerError, err.Error())
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	w.Header().Add("token", newUser.Token)
-	fmt.Printf("%d : User create successfully\n", http.StatusOK)
-	http.Redirect(w, r, "/todo-list", http.StatusOK)
+
+	// Set the token in the response header
+	w.Header().Set("token", newUser.Token)
+
+	// Redirect to the todo list with a success message
+	http.Redirect(w, r, "/todo/todo-list", http.StatusSeeOther)
+	fmt.Printf("User created successfully, status: %d\n", http.StatusOK)
 }
 
 func GetAllUsersHandler(w http.ResponseWriter, r *http.Request) {
