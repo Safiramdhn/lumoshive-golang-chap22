@@ -100,32 +100,10 @@ func (repo *TodoRepositoryDB) GetTodos(token string) ([]models.Todos, error) {
 	return todos, err
 }
 
-func (repo *TodoRepositoryDB) GetCount(token string) (*models.Todos, error) {
-	userStatetement := `SELECT id FROM users WHERE token = $1`
-	var userID int
-	err := repo.DB.QueryRow(userStatetement, token).Scan(&userID)
-	if err != nil {
-		return nil, err
-	}
-	notStartedCount := `SELECT count(*) FROM todos WHERE user_id = $1 AND todo_status = 'not_started'`
-	doneCount := `SELECT count(*) FROM todos WHERE user_id = $1 AND todo_status = 'done'`
-
-	var todo models.Todos
-	err = repo.DB.QueryRow(notStartedCount, userID).Scan(&todo.TotalTodoNotStarted)
-	if err != nil {
-		return nil, err
-	}
-	err = repo.DB.QueryRow(doneCount, userID).Scan(&todo.TotalTodoDone)
-	if err != nil {
-		return nil, err
-	}
-	return &todo, err
-}
-
-func (repo *TodoRepositoryDB) Update(todo *models.Todos) (*models.Todos, error) {
+func (repo *TodoRepositoryDB) Update(id int, newStatus string) error {
 	tx, err := repo.DB.Begin()
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	defer func() {
@@ -137,16 +115,16 @@ func (repo *TodoRepositoryDB) Update(todo *models.Todos) (*models.Todos, error) 
 		}
 	}()
 
-	sqlStatement := `UPDATE todos SET todo_status = $2 WHERE id = $1 RETURNING id, description, todo_status`
-	var updatedTodo models.Todos
-	err = tx.QueryRow(sqlStatement, todo.ID, todo.TodoStatus).Scan(&updatedTodo.ID, &updatedTodo.Description, &updatedTodo.TodoStatus)
+	sqlStatement := `UPDATE todos SET todo_status = $2 WHERE id = $1`
+	_, err = tx.Exec(sqlStatement, id, newStatus)
 	if err != nil {
-		return nil, err
+		return err
 	}
+
 	if err := tx.Commit(); err != nil {
-		return nil, err
+		return err
 	}
-	return &updatedTodo, nil
+	return nil
 }
 
 func (repo *TodoRepositoryDB) Delete(id int) error {

@@ -1,0 +1,12 @@
+{{ define "login" }}
+ {{template "layout-view"}}
+<div class="container">
+    <h2>Login Form</h2>
+    <form method="POST" action="/api/users/login">        
+        <input type="email" id="email" name="email" required placeholder="Email">
+
+        <input type="password" id="password" name="password" required placeholder="Password">
+        <button type="submit">Login</button>
+    </form>
+</div>
+{{ end }}

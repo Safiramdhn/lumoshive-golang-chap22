@@ -1,0 +1,32 @@
+{{ define "user-detail" }}
+{{ template "layout-view" }}
+<div class="container">
+    <h2>User Details</h2>
+    
+    {{ if .User }}
+    <div class="user-detail">
+        <div class="user-detail-item">
+            <strong>Name:</strong> <span>{{ .User.Name }}</span>
+        </div>
+        <div class="user-detail-item">
+            <strong>Email:</strong> <span>{{ .User.Email }}</span>
+        </div>
+        <div class="user-detail-item">
+            <strong>Status:</strong>
+            <span class="user-status {{ if eq .User.UserStatus "active" }}status-active{{ else }}status-inactive{{ end }}">
+                {{ if eq .User.UserStatus "active" }}Active{{ else }}Inactive{{ end }}
+            </span>
+        </div>
+        <div class="user-detail-item">
+            <strong>Password:</strong> <span>{{ .User.Password }}</span>
+        </div>
+        <div class="user-detail-item">
+            <strong>Token:</strong> <span>{{ if .User.Token }} {{.User.Token}} {{else}} - {{end}}</span>
+        </div>
+    </div>
+    <a href="/user-list" class="back-to-list">Back to User List</a>
+    {{ else }}
+    <p>User not found.</p>
+    {{ end }}
+</div>
+{{ end }}

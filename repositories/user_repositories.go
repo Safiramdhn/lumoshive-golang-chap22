@@ -15,7 +15,7 @@ func NewUserRepositoryDB(db *sql.DB) *UserRepositoryDB {
 	return &UserRepositoryDB{db: db}
 }
 
-func (r *UserRepositoryDB) Create(name, email, password, token string) (*models.User, error) {
+func (r *UserRepositoryDB) Create(userInput models.User) (*models.User, error) {
 	var user models.User
 
 	tx, err := r.db.Begin()
@@ -33,8 +33,8 @@ func (r *UserRepositoryDB) Create(name, email, password, token string) (*models.
 	}()
 
 	// SQL query to create a new user
-	sqlStatement := `INSERT INTO users (name, email, password, token) VALUES ($1, $2, $3, $4) RETURNING id, email, name, token`
-	err = tx.QueryRow(sqlStatement, name, email, password, token).Scan(&user.ID, &user.Email, &user.Name, &user.Token)
+	sqlStatement := `INSERT INTO users (name, email, password) VALUES ($1, $2, $3) RETURNING email`
+	err = tx.QueryRow(sqlStatement, userInput.Name, userInput.Email, userInput.Password, userInput.Token).Scan(&user.Email)
 	if err != nil {
 		return nil, err
 	}
@@ -67,7 +67,7 @@ func (r *UserRepositoryDB) Login(email, password string) (*models.User, error) {
 }
 
 func (r *UserRepositoryDB) GetAll() ([]models.User, error) {
-	rows, err := r.db.Query("SELECT id, email, name, status FROM users")
+	rows, err := r.db.Query("SELECT id, name, user_status FROM users ORDER BY name ASC")
 	if err != nil {
 		return nil, err
 	}
@@ -76,7 +76,7 @@ func (r *UserRepositoryDB) GetAll() ([]models.User, error) {
 	var users []models.User
 	for rows.Next() {
 		var user models.User
-		err := rows.Scan(&user.ID, &user.Email, &user.Name, &user.Status)
+		err := rows.Scan(&user.ID, &user.Name, &user.UserStatus)
 		if err != nil {
 			return nil, err
 		}
@@ -89,8 +89,9 @@ func (r *UserRepositoryDB) GetAll() ([]models.User, error) {
 func (r *UserRepositoryDB) GetById(id int) (*models.User, error) {
 	var user models.User
 
-	sqlStatement := `SELECT id, email, name, password, token FROM users WHERE id = $1`
-	err := r.db.QueryRow(sqlStatement, id).Scan(&user.ID, &user.Email, &user.Name, &user.Password, &user.Token)
+	sqlStatement := `SELECT id, email, name, password, token, user_status FROM users WHERE id = $1`
+
+	err := r.db.QueryRow(sqlStatement, id).Scan(&user.ID, &user.Email, &user.Name, &user.Password, &user.Token, &user.UserStatus)
 	if err == sql.ErrNoRows {
 		return nil, nil
 	} else if err != nil {
@@ -98,4 +99,18 @@ func (r *UserRepositoryDB) GetById(id int) (*models.User, error) {
 	}
 
 	return &user, nil
+}
+
+func (r *UserRepositoryDB) GetByToken(token string) (string, error) {
+	var userToken string
+
+	sqlStatement := `SELECT token FROM users WHERE token = $1`
+	err := r.db.QueryRow(sqlStatement, token).Scan(&userToken)
+	if err == sql.ErrNoRows {
+		return "", nil
+	} else if err != nil {
+		return "", err
+	}
+
+	return userToken, nil
 }

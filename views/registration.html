@@ -1,0 +1,15 @@
+{{ define "registration" }}
+ {{template "layout-view"}}
+<div class="container">
+    <h2>Registration Form</h2>
+    <form method="POST" action="/api/users/register">
+        <input type="text" id="name" name="name" required placeholder="Name">
+        
+        <input type="email" id="email" name="email" required placeholder="Email">
+
+        <input type="password" id="password" name="password" required placeholder="Password">
+
+        <button type="submit">Register</button>
+    </form>
+</div>
+{{ end }}

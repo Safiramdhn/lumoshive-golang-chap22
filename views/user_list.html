@@ -1,0 +1,19 @@
+{{ define "user-list" }}
+{{ template "layout-view" }}
+<div class="container">
+    <h2>User List</h2>
+    {{ if .Users }}
+        {{ range .Users }}
+        <div class="user-item">
+            <span class="user-name">{{ .Name }}</span>
+            <span class="user-status {{ if eq .UserStatus "active" }}status-active{{ else }}status-inactive{{ end }}">
+                {{ if eq .UserStatus "active" }}Active{{ else }}Inactive{{ end }}
+            </span>
+            <a href="/user-detail/{{ .ID }}" class="user-detail-link">Detail</a>
+        </div>
+        {{ end }}
+    {{ else }}
+        <p>No users found.</p>
+    {{ end }}
+</div>
+{{ end }}

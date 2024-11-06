@@ -2,11 +2,9 @@ package services
 
 import (
 	"errors"
-	"fmt"
+	// "fmt"
 	"golang-beginner-22/models"
 	"golang-beginner-22/repositories"
-
-	"github.com/google/uuid"
 )
 
 type UserService struct {
@@ -29,18 +27,16 @@ func (s *UserService) LoginService(email, password string) (*models.User, error)
 	return user, nil
 }
 
-func (s *UserService) CreateUser(name, email, password string) (*models.User, error) {
-	fmt.Printf("email: %s, password: %s\n", email, password)
-	if email == "" || password == "" {
+func (s *UserService) CreateUser(userInput models.User) (*models.User, error) {
+	if userInput.Email == "" || userInput.Password == "" {
 		return nil, errors.New("email or password is required")
 	}
 
-	if name == "" {
+	if userInput.Name == "" {
 		return nil, errors.New("name is required")
 	}
 
-	token := uuid.NewString()
-	newUser, err := s.UserRepo.Create(name, email, password, token)
+	newUser, err := s.UserRepo.Create(userInput)
 	if err != nil {
 		return nil, err
 	}
@@ -52,6 +48,7 @@ func (s *UserService) GetAllUsers() ([]models.User, error) {
 	if err != nil {
 		return nil, err
 	}
+
 	return users, nil
 }
 
@@ -61,4 +58,12 @@ func (s *UserService) GetUserByID(id int) (*models.User, error) {
 		return nil, err
 	}
 	return user, nil
+}
+
+func (s *UserService) GetUserByToken(token string) (string, error) {
+	userToken, err := s.UserRepo.GetByToken(token)
+	if err != nil {
+		return "", err
+	}
+	return userToken, nil
 }
